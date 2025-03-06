@@ -10,3 +10,4 @@ This is a mall system implemented based on the gin-wed framework, utilizing exis
 6.登录功能
 
 因部分静态资源文件过大暂未上传，只上传了主要代码
+SoftProject.zip为包含了所有代码和资源的压缩包
