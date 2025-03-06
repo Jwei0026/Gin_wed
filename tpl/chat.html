@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>对话界面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .chat-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 50px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .chat-header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .chat-box {
+            padding: 20px;
+            height: 400px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+        .chat-message {
+            margin-bottom: 15px;
+        }
+        .chat-message.bot {
+            text-align: left;
+        }
+        .chat-message.user {
+            text-align: right;
+        }
+        .chat-message .message-content {
+            display: inline-block;
+            max-width: 80%;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .chat-message.bot .message-content {
+            background-color: #e0e0e0;
+        }
+        .chat-message.user .message-content {
+            background-color: #007bff;
+            color: white;
+        }
+        .input-container {
+            display: flex;
+            padding: 10px;
+            background-color: #fff;
+            border-top: 1px solid #ddd;
+        }
+        .input-container input {
+            width: 85%;
+            padding: 10px;
+            border-radius: 20px;
+            border: 1px solid #ddd;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        .input-container button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .input-container button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="static/js/jquery.js"></script>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <input type="text" id="myInput" style="display: none;" value="{{.product.Product_id }}">
+            {{.product.Chinese_name}}品牌手表智能客服
+        </div>
+        <div class="chat-box" id="chatBox">
+            <!-- 这里会显示聊天记录 -->
+        </div>
+        <div class="input-container">
+            <input type="text" id="userInput" placeholder="请输入消息...">
+            <button onclick="sendMessage()">发送</button>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    // 找不到目标信息时，机器人回复
+    function botResponse(userinput) {  
+        const responses = [              
+            "你可以试着向我提问一些关于手表的基本信息，例如表单表扣之类的",
+            "我不太明白你的意思，可以再说一遍吗？",
+            "我正在学习，能否稍等一下？"
+        ];
+        return responses[Math.floor(Math.random() * responses.length)];
+    }
+    function fmtSprintf(format, ...args) {  //实现类似于fmt.Sprintf的功能
+        let index = 0;
+        return format.replace(/%[sdj%]/g, (match) => {
+            if (match === '%%') {
+                return '%';
+            }
+            const value = args[index++];
+            switch (match) {
+                case '%s':
+                    return String(value);
+                case '%d':
+                    return Number(value);
+                case '%j':
+                    return JSON.stringify(value);
+                default:
+                    return match;
+            }
+        });
+    }
+
+    // 发送消息
+    function sendMessage() {
+        const userInput = document.getElementById("userInput").value;
+        const productid = document.getElementById("myInput").value;
+        if (!userInput) return;
+        console.log(userInput)   //useinput就是用户输入的内容，要传到后端的内容,这里做ajax交互，传递参数，获得信息
+        console.log(productid)
+
+        
+        // 显示用户消息
+        displayMessage(userInput, "user");
+
+        // 清空输入框
+        document.getElementById("userInput").value = "";
+
+        //获取该页面商品详情的关键id，传入用户输入的对话
+        $.ajax({
+            url:'/chatsearch',
+            type:'get',
+            // contentType:'application/json',
+            data:{"useinput":userInput,"productid":productid},
+            success:function(responses){
+
+                console.log(responses);
+                var keyword = responses.Chinesekeyword;
+                var msg = responses.Attributemsg;
+                console.log(keyword);
+                console.log(msg);
+
+                if (keyword && msg){
+                    console.log(keyword,msg)
+                    setTimeout(() => {
+                    const botMessage = fmtSprintf("这一款手表的%s是%s",keyword,msg)
+                    displayMessage(botMessage, "bot");
+                    }, 1000);
+                }else{
+                    setTimeout(() => {
+                    const botMessage = botResponse(userInput);
+                    displayMessage(botMessage, "bot");
+                    }, 1000);
+                }
+            
+            },
+
+            error:function(jqXHR,textStatus,errorThrow){
+                console.error("AJAX请求失败: " + textStatus, errorThrown);
+            }
+        })
+    }
+
+    显示消息
+    function displayMessage(message, sender) {
+        const chatBox = document.getElementById("chatBox"); 
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("chat-message", sender);
+        messageElement.innerHTML = `<div class="message-content">${message}</div>`;
+        chatBox.appendChild(messageElement);  //给chatbox增加孩子节点，聊天的内容
+        chatBox.scrollTop = chatBox.scrollHeight; // 滚动到底部
+    }
+
+</script>

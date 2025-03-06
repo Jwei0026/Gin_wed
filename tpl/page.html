@@ -1,0 +1,35 @@
+<div id="page_nav"> 
+    <span>一共有&nbsp;{{ .pageInfo.TotalCont}}&nbsp;条记录&nbsp;&nbsp;</span>
+
+    {{if eq .pageInfo.Current 1}}
+    {{else}}
+    <a  href="/{{ .router}}?page={{.pageInfo.Prev}}" class="next">上一页<span></span></a>&nbsp; 
+    {{end}}
+
+    {{range .pageInfo.Pages}}
+    {{if eq . $.pageInfo.Current}}
+    <span class="cur">{{.}}</span>&nbsp;
+    {{else}}
+    <!-- 当前上下文是pageinfo.pages内部 ，所以要加$表示全局变量 -->
+    <a href="/{{ $.router}}?page={{.}}">{{.}}</a>&nbsp;
+    {{end}}
+    {{end}}
+
+
+    <!-- <span>&hellip;</span>&nbsp; -->
+    <!-- <a  href="/{{ .router}}?page={{.pageInfo.TotalPages}}">{{.pageInfo.TotalPages}}</a>&nbsp; -->
+    {{if eq .pageInfo.Current .pageInfo.TotalPages}}
+    {{else}}
+    <a  href="/{{ .router}}?page={{.pageInfo.Next}}" class="next">下一页<span></span></a>&nbsp;  
+    {{end}}
+</div>
+
+<!-- 当前采用百度分页逻辑 -->
+<!--
+    1.只显示10页
+    2.当前页码显示前五页，后面显示四页
+    3.如果是第一页则上一页不显示
+    4.如果是最后一页则下一页不显示
+!-->
+
+<!-- 拿到数据后用模板技术进行替换 -->    
